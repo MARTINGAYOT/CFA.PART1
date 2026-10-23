@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFA Level 1 Mock Exam</title>
+<style>
+:root {
+  --navy: #1a2744;
+  --navy-light: #243460;
+  --gold: #c8a84b;
+  --gold-light: #e8c96b;
+  --white: #ffffff;
+  --off-white: #f5f6fa;
+  --gray: #6b7280;
+  --gray-light: #e5e7eb;
+  --green: #059669;
+  --red: #dc2626;
+  --orange: #d97706;
+  --text: #1f2937;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--off-white); color: var(--text); font-size: 15px; line-height: 1.5; }
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; }
+
+/* WELCOME */
+#welcome { background: var(--navy); color: var(--white); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; }
+.logo { font-size: 13px; letter-spacing: 3px; color: var(--gold); margin-bottom: 16px; font-weight: 600; }
+#welcome h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 8px; }
+#welcome h2 { font-size: 1.1rem; font-weight: 400; color: #a0aec0; margin-bottom: 40px; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; max-width: 720px; width: 100%; margin-bottom: 40px; }
+.info-card { background: var(--navy-light); border: 1px solid rgba(200,168,75,0.3); border-radius: 8px; padding: 20px; }
+.info-card .val { font-size: 1.6rem; font-weight: 700; color: var(--gold); }
+.info-card .lbl { font-size: 12px; color: #a0aec0; margin-top: 4px; }
+.rules { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 24px; max-width: 640px; width: 100%; margin-bottom: 36px; text-align: left; }
+.rules h3 { color: var(--gold); margin-bottom: 12px; font-size: 14px; letter-spacing: 1px; }
+.rules li { color: #cbd5e0; margin-bottom: 8px; padding-left: 4px; font-size: 14px; }
+.rules li::before { content: "• "; color: var(--gold); }
+.btn-primary { background: var(--gold); color: var(--navy); border: none; padding: 16px 48px; font-size: 16px; font-weight: 700; border-radius: 6px; cursor: pointer; letter-spacing: 0.5px; transition: background 0.2s; }
+.btn-primary:hover { background: var(--gold-light); }
+.btn-secondary { background: transparent; color: var(--white); border: 2px solid rgba(255,255,255,0.3); padding: 14px 32px; font-size: 15px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+.btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+/* EXAM SCREEN */
+.exam-screen { display: none; flex-direction: column; min-height: 100vh; }
+.exam-screen.active { display: flex; }
+.exam-header { background: var(--navy); color: var(--white); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.exam-header .session-label { font-size: 13px; color: var(--gold); font-weight: 600; }
+.exam-header .q-progress { font-size: 14px; color: #a0aec0; }
+.timer { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; }
+.timer.warning { color: #f59e0b; }
+.timer.danger { color: #ef4444; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+.exam-body { display: flex; flex: 1; }
+.question-panel { flex: 1; padding: 32px 40px; max-width: 820px; }
+.q-number { font-size: 12px; color: var(--gray); font-weight: 600; letter-spacing: 1px; margin-bottom: 8px; }
+.q-stem { font-size: 16px; line-height: 1.7; margin-bottom: 28px; color: var(--text); }
+.q-stem strong { font-weight: 700; }
+.options { display: flex; flex-direction: column; gap: 12px; }
+.option { display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px; border: 2px solid var(--gray-light); border-radius: 8px; cursor: pointer; transition: all 0.15s; background: var(--white); }
+.option:hover { border-color: var(--navy-light); background: #f0f4ff; }
+.option.selected { border-color: var(--navy); background: #e8edfa; }
+.option-letter { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--gray-light); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: var(--gray); flex-shrink: 0; }
+.option.selected .option-letter { border-color: var(--navy); background: var(--navy); color: var(--white); }
+.option-text { font-size: 15px; line-height: 1.5; padding-top: 2px; }
+.q-footer { margin-top: 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: gap; gap: 12px; }
+.btn-nav { padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 2px solid var(--navy); }
+.btn-nav.prev { background: transparent; color: var(--navy); }
+.btn-nav.prev:hover { background: var(--navy); color: var(--white); }
+.btn-nav.next { background: var(--navy); color: var(--white); }
+.btn-nav.next:hover { background: var(--navy-light); }
+.btn-flag { padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid var(--gold); background: transparent; color: var(--gold); transition: all 0.2s; }
+.btn-flag.flagged { background: var(--gold); color: var(--navy); }
+.btn-submit-session { padding: 11px 28px; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; background: var(--gold); color: var(--navy); border: none; }
+.btn-submit-session:hover { background: var(--gold-light); }
+
+/* NAVIGATOR */
+.nav-panel { width: 220px; background: var(--white); border-left: 1px solid var(--gray-light); padding: 16px; overflow-y: auto; }
+.nav-panel h4 { font-size: 12px; color: var(--gray); letter-spacing: 1px; margin-bottom: 12px; font-weight: 600; }
+.nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 20px; }
+.nav-btn { width: 32px; height: 32px; border-radius: 4px; border: 1px solid var(--gray-light); background: var(--white); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; color: var(--gray); }
+.nav-btn:hover { border-color: var(--navy); color: var(--navy); }
+.nav-btn.answered { background: var(--navy); border-color: var(--navy); color: var(--white); }
+.nav-btn.flagged { border-color: var(--gold); color: var(--gold); background: #fffbeb; }
+.nav-btn.answered.flagged { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+.nav-btn.current { box-shadow: 0 0 0 2px var(--navy-light); }
+.nav-legend { font-size: 11px; color: var(--gray); }
+.nav-legend-item { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.nav-legend-dot { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+/* BREAK SCREEN */
+#break-screen { background: var(--navy); color: var(--white); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; min-height: 100vh; }
+#break-screen h2 { font-size: 1.8rem; margin-bottom: 8px; }
+#break-screen p { color: #a0aec0; margin-bottom: 32px; }
+.stats-row { display: flex; gap: 32px; margin-bottom: 40px; justify-content: center; flex-wrap: wrap; }
+.stat-box { background: var(--navy-light); border: 1px solid rgba(200,168,75,0.3); border-radius: 8px; padding: 20px 32px; text-align: center; }
+.stat-box .num { font-size: 2rem; font-weight: 700; color: var(--gold); }
+.stat-box .label { font-size: 12px; color: #a0aec0; margin-top: 4px; }
+.break-note { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 16px 24px; max-width: 480px; font-size: 14px; color: #cbd5e0; margin-bottom: 32px; }
+
+/* REPORT */
+#report-screen { background: var(--off-white); padding: 40px 20px; min-height: 100vh; }
+.report-inner { max-width: 900px; margin: 0 auto; }
+.report-header { background: var(--navy); color: var(--white); border-radius: 12px; padding: 32px 36px; margin-bottom: 24px; }
+.report-header h2 { font-size: 1.6rem; margin-bottom: 4px; }
+.report-header .sub { color: #a0aec0; font-size: 14px; }
+.score-hero { display: flex; align-items: center; gap: 40px; margin-top: 24px; flex-wrap: wrap; }
+.score-circle { width: 120px; height: 120px; border-radius: 50%; border: 6px solid var(--gold); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.score-circle .pct { font-size: 2rem; font-weight: 700; color: var(--gold); }
+.score-circle .lbl { font-size: 11px; color: #a0aec0; }
+.verdict { font-size: 1.4rem; font-weight: 700; }
+.verdict.pass { color: #34d399; }
+.verdict.close { color: #fbbf24; }
+.verdict.fail { color: #f87171; }
+.session-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.session-card { background: var(--white); border-radius: 10px; padding: 24px; border: 1px solid var(--gray-light); }
+.session-card h3 { font-size: 14px; color: var(--gray); margin-bottom: 12px; font-weight: 600; }
+.session-card .big { font-size: 2rem; font-weight: 700; color: var(--navy); }
+.section-card { background: var(--white); border-radius: 10px; padding: 24px; border: 1px solid var(--gray-light); margin-bottom: 16px; }
+.section-card h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 16px; }
+.topic-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.topic-name { width: 200px; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.bar-track { flex: 1; background: var(--gray-light); border-radius: 4px; height: 12px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+.bar-fill.strong { background: var(--green); }
+.bar-fill.ok { background: #3b82f6; }
+.bar-fill.weak { background: var(--orange); }
+.bar-fill.poor { background: var(--red); }
+.topic-score { font-size: 13px; font-weight: 700; width: 50px; text-align: right; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge.high-priority { background: #fee2e2; color: var(--red); }
+.badge.review { background: #fef3c7; color: #92400e; }
+.badge.strong { background: #d1fae5; color: #065f46; }
+.recs { background: var(--white); border-radius: 10px; padding: 24px; border: 1px solid var(--gray-light); margin-bottom: 16px; }
+.recs h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+.rec-item { padding: 10px 0; border-bottom: 1px solid var(--gray-light); font-size: 14px; display: flex; align-items: flex-start; gap: 8px; }
+.rec-item:last-child { border-bottom: none; }
+.rec-icon { font-size: 16px; flex-shrink: 0; }
+.report-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-print { padding: 12px 28px; background: var(--navy); color: var(--white); border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn-restart { padding: 12px 28px; background: transparent; color: var(--navy); border: 2px solid var(--navy); border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+@media (max-width: 700px) {
+  .exam-body { flex-direction: column; }
+  .nav-panel { width: 100%; border-left: none; border-top: 1px solid var(--gray-light); }
+  .question-panel { padding: 20px; }
+  .session-cards { grid-template-columns: 1fr; }
+  .topic-name { width: 120px; }
+}
+@media print {
+  .exam-header, .nav-panel, .report-actions, #welcome, #break-screen { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- WELCOME -->
+<div id="welcome" class="screen active">
+  <div class="logo">CFA INSTITUTE · LEVEL I</div>
+  <h1>CFA Level 1 Mock Exam</h1>
+  <h2>Full-length practice examination · February 2027 format</h2>
+  <div class="info-grid">
+    <div class="info-card"><div class="val">180</div><div class="lbl">Total Questions</div></div>
+    <div class="info-card"><div class="val">2 × 90</div><div class="lbl">Questions Per Session</div></div>
+    <div class="info-card"><div class="val">135 min</div><div class="lbl">Per Session</div></div>
+    <div class="info-card"><div class="val">10</div><div class="lbl">Topic Areas</div></div>
+  </div>
+  <div class="rules">
+    <h3>EXAM RULES</h3>
+    <ul>
+      <li>Each question has exactly three answer choices: A, B, or C</li>
+      <li>No negative marking — answer every question</li>
+      <li>You may flag questions for review and return to them</li>
+      <li>Session 1 covers Ethics, Quant, Economics, FSA, Corporate Issuers</li>
+      <li>Session 2 covers Equity, Fixed Income, Derivatives, Alternatives, Portfolio Management</li>
+      <li>A short optional break separates the two sessions</li>
+      <li>Your diagnostic report is generated after Session 2</li>
+    </ul>
+  </div>
+  <button class="btn-primary" onclick="startExam()">Begin Session 1 →</button>
+</div>
+
+<!-- SESSION 1 -->
+<div id="session1" class="exam-screen">
+  <div class="exam-header">
+    <div>
+      <div class="session-label">SESSION 1 OF 2</div>
+      <div class="q-progress" id="s1-progress">Question 1 of 90</div>
+    </div>
+    <div class="timer" id="s1-timer">2:15:00</div>
+    <button class="btn-submit-session" onclick="confirmSubmit(1)">Submit Session 1</button>
+  </div>
+  <div class="exam-body">
+    <div class="question-panel" id="s1-question-panel">
+      <!-- rendered by JS -->
+    </div>
+    <div class="nav-panel">
+      <h4>QUESTION NAVIGATOR</h4>
+      <div class="nav-grid" id="s1-nav-grid"></div>
+      <div class="nav-legend">
+        <div class="nav-legend-item"><div class="nav-legend-dot" style="background:var(--navy)"></div> Answered</div>
+        <div class="nav-legend-item"><div class="nav-legend-dot" style="border:2px solid var(--gold-light);background:#fffbeb"></div> Flagged</div>
+        <div class="nav-legend-item"><div class="nav-legend-dot" style="background:var(--gray-light)"></div> Unanswered</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BREAK -->
+<div id="break-screen" class="screen">
+  <div class="logo">SESSION 1 COMPLETE</div>
+  <h2>Optional Break</h2>
+  <p>You may take a short break. Session 2 begins when you click the button below.</p>
+  <div class="stats-row">
+    <div class="stat-box"><div class="num" id="s1-answered-count">0</div><div class="label">Questions Answered</div></div>
+    <div class="stat-box"><div class="num" id="s1-flagged-count">0</div><div class="label">Flagged for Review</div></div>
+    <div class="stat-box"><div class="num" id="s1-time-used">0:00</div><div class="label">Time Used</div></div>
+  </div>
+  <div class="break-note">⚠️ On the real exam, leaving the test centre during the break may require re-check-in. Unanswered questions in Session 1 cannot be revisited after clicking below.</div>
+  <button class="btn-primary" onclick="startSession2()">Begin Session 2 →</button>
+</div>
+
+<!-- SESSION 2 -->
+<div id="session2" class="exam-screen">
+  <div class="exam-header">
+    <div>
+      <div class="session-label">SESSION 2 OF 2</div>
+      <div class="q-progress" id="s2-progress">Question 1 of 90</div>
+    </div>
+    <div class="timer" id="s2-timer">2:15:00</div>
+    <button class="btn-submit-session" onclick="confirmSubmit(2)">Submit &amp; See Results</button>
+  </div>
+  <div class="exam-body">
+    <div class="question-panel" id="s2-question-panel"></div>
+    <div class="nav-panel">
+      <h4>QUESTION NAVIGATOR</h4>
+      <div class="nav-grid" id="s2-nav-grid"></div>
+      <div class="nav-legend">
+        <div class="nav-legend-item"><div class="nav-legend-dot" style="background:var(--navy)"></div> Answered</div>
+        <div class="nav-legend-item"><div class="nav-legend-dot" style="border:2px solid var(--gold-light);background:#fffbeb"></div> Flagged</div>
+        <div class="nav-legend-item"><div class="nav-legend-dot" style="background:var(--gray-light)"></div> Unanswered</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT -->
+<div id="report-screen" class="screen">
+  <div class="report-inner">
+    <div class="report-header">
+      <h2>Diagnostic Report — CFA Level 1 Mock Exam</h2>
+      <div class="sub" id="report-date"></div>
+      <div class="score-hero">
+        <div class="score-circle"><div class="pct" id="report-pct">—</div><div class="lbl">OVERALL</div></div>
+        <div>
+          <div class="verdict" id="report-verdict"></div>
+          <div style="color:#a0aec0;font-size:14px;margin-top:8px" id="report-verdict-sub"></div>
+        </div>
+      </div>
+    </div>
+    <div class="session-cards">
+      <div class="session-card">
+        <h3>SESSION 1 · Ethics, Quant, Econ, FSA, Corp</h3>
+        <div class="big" id="s1-report-score">—</div>
+        <div style="font-size:13px;color:var(--gray);margin-top:4px" id="s1-report-pct"></div>
+      </div>
+      <div class="session-card">
+        <h3>SESSION 2 · Equity, FI, Derivatives, Alts, PM</h3>
+        <div class="big" id="s2-report-score">—</div>
+        <div style="font-size:13px;color:var(--gray);margin-top:4px" id="s2-report-pct"></div>
+      </div>
+    </div>
+    <div class="section-card">
+      <h3>Topic Performance</h3>
+      <div id="topic-bars"></div>
+    </div>
+    <div class="recs" id="recommendations">
+      <h3>Study Recommendations</h3>
+      <div id="recs-list"></div>
+    </div>
+    <div class="report-actions">
+      <button class="btn-print" onclick="window.print()">🖨 Print / Save PDF</button>
+      <button class="btn-restart" onclick="location.reload()">↺ Restart Exam</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── QUESTION BANK ──────────────────────────────────────────────────────────
+// topic codes: ETH QNT ECO FSA COR EQU FI DRV ALT PM
+const Q = [
+</script>
+// SESSION 1 — 90 questions
+// ETHICS (27 questions, indices 0-26)
+{t:"ETH",q:"An investment manager learns that a client plans to withdraw $2 million next week, which would significantly impact a small-cap stock the fund holds. She sells the fund's position before processing the client's withdrawal. This action most likely violates the CFA Institute Standard concerning:",a:"Market manipulation",b:"Priority of transactions",c:"Loyalty, prudence, and care",ans:"B"},
+{t:"ETH",q:"A CFA charterholder working at a broker-dealer receives a research report from a colleague indicating a company will miss earnings. Before publishing the report, the charterholder buys put options on the company for his personal account. This most likely violates:",a:"Standard II(A) – Material Nonpublic Information",b:"Standard VI(B) – Priority of Transactions",c:"Both Standard II(A) and Standard VI(B)",ans:"C"},
+{t:"ETH",q:"According to the Standards of Professional Conduct, which of the following is the LEAST appropriate action when a member receives material nonpublic information?",a:"Notify the firm's compliance department",b:"Place the information in a restricted list",c:"Share the information only with senior portfolio managers",ans:"C"},
+{t:"ETH",q:"A portfolio manager tells a client that her fund 'consistently beats the S&P 500.' In fact, the fund outperformed the index in three of the last five years. This statement most likely violates:",a:"Standard I(C) – Misrepresentation",b:"Standard V(B) – Communication with Clients",c:"Both Standard I(C) and Standard V(B)",ans:"C"},
+{t:"ETH",q:"Under the Global Investment Performance Standards (GIPS), composite construction requires that:",a:"All actual, discretionary, fee-paying portfolios be included in at least one composite",b:"Only the firm's largest portfolios be included in composites",c:"Model portfolios may be included in composites alongside actual portfolios",ans:"A"},
+{t:"ETH",q:"A research analyst issues a buy recommendation on a company whose CFO is a personal friend. The analyst does not disclose this relationship. The analyst's firm has no financial relationship with the company. Which Standard is most likely violated?",a:"Standard VI(A) – Disclosure of Conflicts",b:"Standard I(B) – Independence and Objectivity",c:"Standard V(A) – Diligence and Reasonable Basis",ans:"A"},
+{t:"ETH",q:"A CFA candidate discovers her supervisor has been misrepresenting performance results to clients. After reporting to her supervisor, who takes no action, the candidate's BEST next step according to the Standards is to:",a:"Immediately resign from the firm",b:"Report the violation to the CFA Institute",c:"Escalate to higher management or compliance, and consider legal advice",ans:"C"},
+{t:"ETH",q:"Which of the following is MOST consistent with Standard III(A) – Loyalty, Prudence, and Care?",a:"Voting client proxies in the way that maximizes brokerage commissions",b:"Directing brokerage to a broker who provides valuable research that benefits clients",c:"Soft-dollar arrangements that benefit the manager at the client's expense",ans:"B"},
+{t:"ETH",q:"A member provides investment advice in a country where CFA Institute Standards are stricter than local law. The member should follow:",a:"Local law, because it has legal force",b:"CFA Institute Standards, because they are stricter",c:"Whichever standard the client prefers",ans:"B"},
+{t:"ETH",q:"A portfolio manager uses third-party research to support a buy recommendation without independently verifying the research. Which Standard is most relevant?",a:"Standard V(A) – Diligence and Reasonable Basis",b:"Standard V(B) – Communication with Clients",c:"Standard I(C) – Misrepresentation",ans:"A"},
+{t:"ETH",q:"Which of the following is BEST described as a form of front-running?",a:"Executing client trades before publishing a research report that the manager wrote",b:"Trading a security after receiving a client order but before filling the client order",c:"Purchasing shares at market open before a scheduled earnings announcement",ans:"B"},
+{t:"ETH",q:"A CFA charterholder leaves her employer and begins working at a competing firm. She brings a list of client names and contact information memorised from her previous employer. This most likely violates:",a:"Standard IV(A) – Loyalty to Employer",b:"Standard III(A) – Loyalty, Prudence, and Care",c:"Standard VI(A) – Disclosure of Conflicts",ans:"A"},
+{t:"ETH",q:"Under GIPS, the term 'firm' is defined as:",a:"A legal entity registered with securities regulators",b:"An investment firm, subsidiary, or division that is held out to clients as a distinct business entity",c:"Any entity that manages assets on behalf of third parties",ans:"B"},
+{t:"ETH",q:"A financial adviser recommends a mutual fund that charges higher fees than a comparable fund. The adviser receives a higher commission from the recommended fund. To comply with Standard VI(A), the adviser must:",a:"Refuse to recommend any fund that pays commissions",b:"Recommend only the lowest-cost fund available",c:"Disclose the commission arrangement to the client",ans:"C"},
+{t:"ETH",q:"Which of the following practices is MOST consistent with Standard II(B) – Market Manipulation?",a:"Issuing research reports with aggressive but well-supported price targets",b:"Conducting large trades to create the appearance of active trading in a thinly traded stock",c:"Recommending a stock to all clients simultaneously",ans:"B"},
+{t:"ETH",q:"A CFA charterholder manages a pension fund. The fund's sponsor instructs her to avoid investing in tobacco companies. The charterholder should:",a:"Follow the instruction only if it is consistent with maximising returns",b:"Follow the instruction, as it is a valid client constraint",c:"Refuse the instruction, as it conflicts with fiduciary duty to maximise returns",ans:"B"},
+{t:"ETH",q:"According to the Code of Ethics, members must act in a manner that reflects:",a:"Credit on themselves",b:"The highest standards of their home country's regulations",c:"Credit on themselves and the investment profession",ans:"C"},
+{t:"ETH",q:"A member prepares a research report and includes simulated past performance without clearly labelling it as simulated. This most likely violates Standard:",a:"I(C) – Misrepresentation",b:"V(B) – Communication with Clients",c:"Both I(C) and V(B)",ans:"C"},
+{t:"ETH",q:"Which of the following is NOT required for a recommendation to meet the Reasonable Basis Standard?",a:"The member must understand the investment's characteristics",b:"The member must obtain client approval before purchase",c:"The member must have a reasonable and adequate basis for the recommendation",ans:"B"},
+{t:"ETH",q:"A sell-side analyst receives a trip to a company's offshore facility, valued at $3,500, funded by the company. To preserve independence, the analyst should MOST appropriately:",a:"Accept the trip and disclose it in the research report",b:"Decline the trip and conduct due diligence independently",c:"Accept the trip only if the research conclusion is positive",ans:"B"},
+{t:"ETH",q:"Mosaic theory permits an analyst to:",a:"Trade on material nonpublic information if it is part of a larger research mosaic",b:"Combine non-material nonpublic information with public information to reach a conclusion",c:"Use any information gathered through expert networks without restriction",ans:"B"},
+{t:"ETH",q:"A client instructs her manager to invest only in ESG-screened securities. The manager believes this will reduce returns. The manager should:",a:"Override the instruction to maximise returns",b:"Follow the instruction as it represents the client's investment mandate",c:"Seek a court order before following the instruction",ans:"B"},
+{t:"ETH",q:"Which of the following best describes a soft-dollar arrangement that complies with Standard III(A)?",a:"Using client brokerage to pay for office rent",b:"Using client brokerage to obtain research that directly benefits client portfolios",c:"Using client brokerage to obtain research that benefits the manager's proprietary accounts",ans:"B"},
+{t:"ETH",q:"A CFA member fails to report a colleague's violation of the Standards to a regulatory authority. According to the Standards, the member has:",a:"Not violated the Standards, as reporting to regulators is not required",b:"Violated Standard I(A) by failing to report a known violation",c:"Violated Standard IV(A) by placing loyalty to a colleague above professional obligations",ans:"A"},
+{t:"ETH",q:"Under Standard VII(B) – Reference to CFA Institute, CFA Designation, and CFA Program, a candidate who passes Level 1 may:",a:"Use the designation 'CFA Level 1'",b:"State that they have passed Level 1 of the CFA exam",c:"Use the letters 'CFA' after their name with a note indicating partial completion",ans:"B"},
+{t:"ETH",q:"A portfolio manager overweights a stock in client portfolios shortly before a major positive announcement. An investigation reveals the manager had no access to nonpublic information but used aggressive analysis. This most likely:",a:"Violates Standard II(A) regardless of how the information was obtained",b:"Does not violate the Standards if based on diligent analysis of public information",c:"Violates Standard V(A) because aggressive analysis is not permitted",ans:"B"},
+{t:"ETH",q:"According to GIPS, a firm claiming compliance must:",a:"Apply GIPS standards on a composite-by-composite basis",b:"Apply GIPS standards on a firm-wide basis",c:"Apply GIPS standards only to accounts marketed to institutional investors",ans:"B"},
+// QUANTITATIVE METHODS (17 questions, indices 27-43)
+{t:"QNT",q:"An investor deposits $5,000 today into an account earning 6% per year, compounded monthly. The value of the account after 10 years is closest to:",a:"$8,954",b:"$9,097",c:"$9,244",ans:"B"},
+{t:"QNT",q:"A bond pays $80 annually and matures in 5 years at a face value of $1,000. If the required return is 9%, the bond's price is closest to:",a:"$961",b:"$961",c:"$961",ans:"A"},
+{t:"QNT",q:"A perpetuity pays $200 per year. If the discount rate is 5%, the present value of the perpetuity is:",a:"$3,000",b:"$4,000",c:"$5,000",ans:"B"},
+{t:"QNT",q:"An analyst calculates that the probability of a stock rising is 0.55 and the probability of the economy expanding is 0.60. The probability of both events if they are independent is:",a:"0.33",b:"0.29",c:"0.26",ans:"A"},
+{t:"QNT",q:"A portfolio earned returns of 8%, −4%, and 12% over three years. The geometric mean return is closest to:",a:"5.1%",b:"5.3%",c:"5.5%",ans:"A"},
+{t:"QNT",q:"Which of the following statements about a normal distribution is MOST accurate?",a:"It is defined by mean, median, and mode, which are all different",b:"Approximately 95% of observations fall within two standard deviations of the mean",c:"It has a positive skew",ans:"B"},
+{t:"QNT",q:"An investor can earn 4% per year simple interest or 3.92% per year compounded monthly. To maximise returns, the investor should choose:",a:"Simple interest, because 4% > 3.92%",b:"Compounded monthly, because the EAR exceeds 4%",c:"Either, as they produce the same result",ans:"B"},
+{t:"QNT",q:"A two-tailed hypothesis test with a significance level of 5% uses a z-statistic of 2.10. The CORRECT conclusion is:",a:"Fail to reject H₀, because the critical value is 1.645",b:"Reject H₀, because |2.10| > 1.96",c:"Fail to reject H₀, because the critical value is 2.576",ans:"B"},
+{t:"QNT",q:"An investor expects to make six annual deposits of $1,500 starting today (annuity due) at 7% per year. The future value at the end of year 6 is closest to:",a:"$11,401",b:"$12,200",c:"$13,079",ans:"B"},
+{t:"QNT",q:"The coefficient of variation is best described as:",a:"Standard deviation divided by the mean",b:"Mean divided by standard deviation",c:"Variance divided by the mean",ans:"A"},
+{t:"QNT",q:"In a positively skewed distribution, the most appropriate measure of central tendency for an analyst to use when the data contains outliers is the:",a:"Mean",b:"Median",c:"Mode",ans:"B"},
+{t:"QNT",q:"A Type I error in hypothesis testing is defined as:",a:"Failing to reject a false null hypothesis",b:"Rejecting a true null hypothesis",c:"Using an incorrect test statistic",ans:"B"},
+{t:"QNT",q:"An analyst runs a regression and finds an R² of 0.72. This means that:",a:"72% of the variation in the dependent variable is explained by the independent variable(s)",b:"The correlation between the variables is 0.72",c:"The regression slope is 0.72",ans:"A"},
+{t:"QNT",q:"The money-weighted return (MWR) is BEST described as the:",a:"Geometric average of sub-period returns",b:"Internal rate of return of the investment cash flows",c:"Arithmetic average of annual returns",ans:"B"},
+{t:"QNT",q:"Which of the following best describes the relationship between bond price and yield?",a:"They are positively correlated",b:"They move in opposite directions",c:"They are uncorrelated when the bond is at par",ans:"B"},
+{t:"QNT",q:"A fund has annual returns of 15%, 5%, −10%, and 20%. The arithmetic mean return is closest to:",a:"6.5%",b:"7.5%",c:"8.5%",ans:"B"},
+{t:"QNT",q:"An analyst estimates that a stock has a 30% chance of gaining 20%, a 50% chance of gaining 5%, and a 20% chance of losing 10%. The expected return is:",a:"5.5%",b:"6.5%",c:"7.5%",ans:"A"},
+// ECONOMICS (16 questions, indices 44-59)
+{t:"ECO",q:"If the price of a good rises by 10% and quantity demanded falls by 15%, the price elasticity of demand is:",a:"−0.67",b:"−1.50",c:"−1.67",ans:"B"},
+{t:"ECO",q:"In a perfectly competitive market, firms in long-run equilibrium earn:",a:"Normal (zero economic) profit",b:"Positive economic profit due to barriers to entry",c:"Negative economic profit offset by subsidies",ans:"A"},
+{t:"ECO",q:"Expansionary fiscal policy is BEST described as:",a:"The central bank cutting interest rates to stimulate the economy",b:"The government increasing spending or cutting taxes to stimulate the economy",c:"The government raising taxes to reduce the fiscal deficit",ans:"B"},
+{t:"ECO",q:"Which of the following best explains why a monopoly is less efficient than a perfectly competitive market?",a:"A monopoly sets price equal to marginal cost",b:"A monopoly produces less output at a higher price than the competitive equilibrium",c:"A monopoly always earns negative economic profit",ans:"B"},
+{t:"ECO",q:"If the domestic interest rate rises relative to foreign interest rates, the effect on the domestic currency is most likely:",a:"Depreciation, as capital outflows increase",b:"Appreciation, as foreign capital inflows increase",c:"No effect, because of interest rate parity",ans:"B"},
+{t:"ECO",q:"GDP measured using the expenditure approach equals:",a:"C + I + G + NX",b:"Wages + rents + interest + profits",c:"Value added at each stage of production",ans:"A"},
+{t:"ECO",q:"According to the quantity theory of money (MV = PQ), if money supply grows at 5% and velocity is constant and real GDP grows at 2%, the expected inflation rate is approximately:",a:"2%",b:"3%",c:"7%",ans:"B"},
+{t:"ECO",q:"The term 'natural rate of unemployment' refers to:",a:"The unemployment rate during a recession",b:"The unemployment rate when the economy is at full employment (frictional + structural)",c:"Zero unemployment in a theoretical equilibrium",ans:"B"},
+{t:"ECO",q:"Which of the following exchange rate regimes allows market forces to determine currency values with minimal government intervention?",a:"Fixed exchange rate",b:"Currency board",c:"Free float",ans:"C"},
+{t:"ECO",q:"An oligopoly is characterised by:",a:"Many sellers, each with no market power",b:"A few dominant sellers with interdependent pricing decisions",c:"A single seller controlling the entire market",ans:"B"},
+{t:"ECO",q:"A country running a current account deficit must, by accounting identity, be running:",a:"A surplus in its capital and financial account",b:"A government budget surplus",c:"A surplus in both the capital account and the trade balance",ans:"A"},
+{t:"ECO",q:"Which of the following is most likely to cause stagflation?",a:"A negative supply shock combined with loose monetary policy",b:"A positive demand shock with tight fiscal policy",c:"Deflation combined with rising output",ans:"A"},
+{t:"ECO",q:"If the purchasing power parity theory holds and domestic inflation exceeds foreign inflation, the domestic currency will most likely:",a:"Appreciate relative to the foreign currency",b:"Depreciate relative to the foreign currency",c:"Remain unchanged because PPP holds",ans:"B"},
+{t:"ECO",q:"The crowding out effect suggests that:",a:"Government borrowing lowers interest rates and stimulates private investment",b:"Government borrowing raises interest rates and reduces private investment",c:"Tax cuts always fully crowd out government expenditure",ans:"B"},
+{t:"ECO",q:"Which of the following scenarios best illustrates cost-push inflation?",a:"An increase in consumer spending drives prices higher",b:"An oil price shock raises production costs across the economy",c:"Monetary expansion increases the money supply",ans:"B"},
+{t:"ECO",q:"In the short run, the Phillips curve suggests a trade-off between:",a:"Inflation and interest rates",b:"Unemployment and inflation",c:"GDP growth and the money supply",ans:"B"},
+// FINANCIAL STATEMENT ANALYSIS (21 questions, indices 60-80)
+{t:"FSA",q:"A company's current ratio is 2.5 and its quick ratio is 1.2. This difference is MOST likely due to a large amount of:",a:"Accounts receivable",b:"Inventory",c:"Cash and equivalents",ans:"B"},
+{t:"FSA",q:"Under IFRS, development costs for a new product must be:",a:"Expensed as incurred",b:"Capitalised if certain criteria are met",c:"Deferred until the product is sold",ans:"B"},
+{t:"FSA",q:"A company uses the LIFO inventory method during a period of rising prices. Compared to FIFO, LIFO will result in:",a:"Higher ending inventory and higher gross profit",b:"Lower ending inventory and lower gross profit",c:"The same net income, because total cost is unchanged",ans:"B"},
+{t:"FSA",q:"Which financial statement presents a company's assets, liabilities, and equity at a specific point in time?",a:"Income statement",b:"Balance sheet",c:"Cash flow statement",ans:"B"},
+{t:"FSA",q:"An analyst is comparing a company's cash flow from operations (CFO) to its net income. A CFO significantly greater than net income is MOST likely because:",a:"The company is capitalising large amounts of expenses",b:"Non-cash charges such as depreciation are reducing net income below CFO",c:"Revenue is recognised before cash is received",ans:"B"},
+{t:"FSA",q:"Under the accrual basis of accounting, revenue is recognised when:",a:"Cash is received from the customer",b:"Performance obligations are satisfied",c:"The invoice is issued to the customer",ans:"B"},
+{t:"FSA",q:"A company has $500,000 in total assets and $200,000 in total equity. The financial leverage ratio (assets/equity) is:",a:"0.4",b:"1.5",c:"2.5",ans:"C"},
+{t:"FSA",q:"An analyst calculates that a company's receivables turnover fell from 12x to 8x. This most likely indicates:",a:"Improved collection of receivables",b:"Slower collection, suggesting potential credit quality issues",c:"An increase in sales",ans:"B"},
+{t:"FSA",q:"When a company issues bonds at a discount, the interest expense recognised on the income statement is:",a:"Less than the coupon payment",b:"Equal to the coupon payment",c:"Greater than the coupon payment",ans:"C"},
+{t:"FSA",q:"Under IFRS, investment property may be measured using the:",a:"Cost model or revaluation model",b:"Cost model or fair value model",c:"Lower of cost or net realisable value",ans:"B"},
+{t:"FSA",q:"A vertical common-size income statement expresses each line item as a percentage of:",a:"Total assets",b:"Net revenue",c:"Beginning equity",ans:"B"},
+{t:"FSA",q:"The direct method of presenting the cash flow statement:",a:"Adjusts net income for non-cash items and working capital changes",b:"Shows actual cash receipts from customers and cash payments to suppliers",c:"Is required under both IFRS and US GAAP",ans:"B"},
+{t:"FSA",q:"A company with a high degree of operating leverage has:",a:"Low fixed costs relative to variable costs",b:"High fixed costs relative to variable costs, making earnings highly sensitive to revenue changes",c:"A high debt-to-equity ratio",ans:"B"},
+{t:"FSA",q:"Which of the following would INCREASE a firm's return on equity (ROE) according to the DuPont decomposition?",a:"A decrease in the net profit margin",b:"An increase in asset turnover",c:"A decrease in financial leverage",ans:"B"},
+{t:"FSA",q:"An off-balance-sheet arrangement that may expose a company to significant financial risk is most likely a:",a:"Finance lease",b:"Operating lease under US GAAP (pre-ASC 842)",c:"Long-term bond issuance",ans:"B"},
+{t:"FSA",q:"A company's days sales outstanding (DSO) increased from 30 to 45 days. An analyst should most likely investigate whether the company is:",a:"Collecting cash faster from customers",b:"Channel-stuffing or recognising revenue prematurely",c:"Reducing its credit terms",ans:"B"},
+{t:"FSA",q:"Goodwill arising from an acquisition is tested for impairment:",a:"Annually, or more frequently if indicators exist, and is never amortised under IFRS",b:"Only when the acquired company is sold",c:"On a straight-line basis over its useful life",ans:"A"},
+{t:"FSA",q:"On the cash flow statement, paying dividends to common shareholders appears under:",a:"Operating activities",b:"Investing activities",c:"Financing activities",ans:"C"},
+{t:"FSA",q:"A company's interest coverage ratio equals EBIT divided by interest expense. A ratio of 1.5 suggests:",a:"The company generates abundant earnings to cover interest",b:"The company has very limited margin for earnings decline before it cannot cover interest",c:"The company is financially distressed and will default",ans:"B"},
+{t:"FSA",q:"Under the percentage-of-completion method (now recognised under IFRS 15), revenue is recognised:",a:"Only when a contract is fully complete",b:"Proportionally as performance obligations are satisfied over time",c:"When cash is received from the client",ans:"B"},
+{t:"FSA",q:"Which of the following is classified as an investing activity on the cash flow statement?",a:"Payment of dividends",b:"Purchase of property, plant, and equipment",c:"Issuance of long-term debt",ans:"B"},
+// CORPORATE ISSUERS (9 questions, indices 81-89)
+{t:"COR",q:"The primary goal of corporate financial management is to:",a:"Maximise earnings per share",b:"Maximise the intrinsic value of the firm for shareholders",c:"Minimise the cost of capital",ans:"B"},
+{t:"COR",q:"A company's weighted average cost of capital (WACC) is MOST appropriately used to:",a:"Discount operating cash flows when evaluating investment projects",b:"Determine the dividend policy of the company",c:"Calculate the company's working capital requirements",ans:"A"},
+{t:"COR",q:"Which of the following is a consequence of the agency conflict between shareholders and managers?",a:"Managers always act in the best interest of shareholders",b:"Managers may pursue strategies that benefit themselves at shareholders' expense",c:"Shareholders bear no risk when managers make investment decisions",ans:"B"},
+{t:"COR",q:"Net present value (NPV) and internal rate of return (IRR) will give CONFLICTING rankings for mutually exclusive projects when:",a:"Projects have the same initial investment",b:"Projects have different sizes or cash flow timing patterns",c:"Projects have the same IRR",ans:"B"},
+{t:"COR",q:"A company's dividend payout ratio is 40% and its return on equity is 15%. The firm's sustainable growth rate is closest to:",a:"6%",b:"9%",c:"15%",ans:"B"},
+{t:"COR",q:"The Modigliani-Miller theorem without taxes states that:",a:"Capital structure is irrelevant to firm value",b:"Debt financing always increases firm value",c:"Equity financing is always preferred to debt financing",ans:"A"},
+{t:"COR",q:"Which of the following represents a conflict of interest between bondholders and shareholders?",a:"Shareholders prefer managers to take on more risk than is optimal for bondholders",b:"Bondholders prefer higher dividend payments than shareholders",c:"Bondholders want the firm to issue more equity to reduce risk",ans:"A"},
+{t:"COR",q:"A company has EBIT of $800,000, interest expense of $200,000, taxes of $150,000, and depreciation of $100,000. Its operating cash flow is closest to:",a:"$450,000",b:"$550,000",c:"$650,000",ans:"B"},
+{t:"COR",q:"Which of the following capital structure changes would MOST likely decrease a firm's WACC, assuming the firm is under-levered?",a:"Issuing more equity and repurchasing debt",b:"Issuing more debt (up to the optimal leverage ratio)",c:"Retaining all earnings rather than paying dividends",ans:"B"},
+// SESSION 2 — 90 questions
+// EQUITY INVESTMENTS (20 questions, indices 90-109)
+{t:"EQU",q:"A stock is expected to pay a dividend of $2.00 next year. The required return is 10% and the dividend is expected to grow at 4% perpetually. Using the Gordon Growth Model, the intrinsic value of the stock is:",a:"$28.57",b:"$33.33",c:"$50.00",ans:"B"},
+{t:"EQU",q:"An analyst calculates a trailing P/E of 18x and a forward P/E of 14x. This difference most likely suggests the market expects:",a:"Declining earnings",b:"Earnings growth",c:"A stable dividend payout",ans:"B"},
+{t:"EQU",q:"The efficient market hypothesis (EMH) in its strong form implies that:",a:"Prices reflect all public information only",b:"Prices reflect all public and private information, so no investor can consistently earn abnormal returns",c:"Technical analysis can generate abnormal returns",ans:"B"},
+{t:"EQU",q:"In the industry life cycle framework, which stage is characterised by rapid revenue growth, negative cash flows, and heavy capital investment?",a:"Mature stage",b:"Growth stage",c:"Decline stage",ans:"B"},
+{t:"EQU",q:"Porter's Five Forces framework identifies which of the following as a direct determinant of industry profitability?",a:"Macroeconomic growth rate",b:"Bargaining power of suppliers",c:"Central bank interest rate policy",ans:"B"},
+{t:"EQU",q:"A company has book value per share of $20, earnings per share of $3, and the required return on equity is 12%. Using the residual income model, the intrinsic value is closest to:",a:"$20.00",b:"$37.50",c:"$45.00",ans:"B"},
+{t:"EQU",q:"Which of the following equity valuation methods is MOST appropriate for valuing a company with a history of negative earnings?",a:"Price-to-earnings (P/E) multiple",b:"Price-to-book (P/B) or enterprise value / EBITDA",c:"Dividend discount model",ans:"B"},
+{t:"EQU",q:"A preferred stock pays a fixed annual dividend of $5 and has a required return of 8%. Its intrinsic value is:",a:"$50.00",b:"$62.50",c:"$100.00",ans:"B"},
+{t:"EQU",q:"Which market structure is characterised by a large number of firms producing slightly differentiated products with low barriers to entry?",a:"Oligopoly",b:"Monopolistic competition",c:"Perfect competition",ans:"B"},
+{t:"EQU",q:"An analyst determines that a stock's current price of $45 implies an expected return of 8%, while the required return based on CAPM is 11%. The analyst should most likely conclude the stock is:",a:"Overvalued, because the expected return is less than the required return",b:"Undervalued, because the expected return is less than the required return",c:"Fairly valued, because small differences are within estimation error",ans:"A"},
+{t:"EQU",q:"Which of the following best describes enterprise value (EV)?",a:"Market capitalisation minus total debt",b:"Market capitalisation plus total debt minus cash and cash equivalents",c:"Book value of equity plus market value of debt",ans:"B"},
+{t:"EQU",q:"A growth stock with high P/E ratios most likely has:",a:"Low expected future earnings growth",b:"High expected future earnings growth that justifies the premium",c:"High dividend yield to compensate investors for risk",ans:"B"},
+{t:"EQU",q:"An analyst uses the top-down investment approach. The FIRST step is to:",a:"Select individual securities based on fundamental analysis",b:"Analyse macroeconomic conditions and outlook",c:"Evaluate industry-level factors",ans:"B"},
+{t:"EQU",q:"Which of the following is an advantage of using price-to-sales (P/S) ratio compared to P/E ratio?",a:"P/S captures profitability directly",b:"P/S can be used even when earnings are negative",c:"P/S better reflects cash generation",ans:"B"},
+{t:"EQU",q:"Systematic risk, also known as market risk, can best be reduced by:",a:"Diversification across asset classes",b:"It cannot be diversified away",c:"Selecting stocks with low correlation to each other",ans:"B"},
+{t:"EQU",q:"The CAPM formula is: E(R) = Rf + β(Rm − Rf). If Rf = 3%, β = 1.2, and Rm = 9%, the required return is:",a:"7.2%",b:"10.2%",c:"11.4%",ans:"B"},
+{t:"EQU",q:"A stock has a beta of 0.8. If the market rises by 10%, the stock is expected to rise by approximately:",a:"8%",b:"10%",c:"12.5%",ans:"A"},
+{t:"EQU",q:"Which of the following best describes the value investing style?",a:"Purchasing stocks with high P/E and high growth expectations",b:"Purchasing stocks trading below their estimated intrinsic value",c:"Investing in small-cap stocks with high momentum",ans:"B"},
+{t:"EQU",q:"In a price-weighted index, a stock split of a high-priced stock will:",a:"Increase the index level",b:"Require an adjustment to the divisor",c:"Have no effect on the index",ans:"B"},
+{t:"EQU",q:"Earnings per share (EPS) dilution occurs when:",a:"A company buys back shares",b:"Convertible bonds or stock options are exercised, increasing shares outstanding",c:"Dividends are reduced",ans:"B"},
+// FIXED INCOME (20 questions, indices 110-129)
+{t:"FI",q:"A bond with a coupon rate of 6% has a yield to maturity of 8%. This bond is trading at:",a:"Par",b:"A premium to par",c:"A discount to par",ans:"C"},
+{t:"FI",q:"A $1,000 face value bond pays a 5% annual coupon and matures in 3 years. If the required yield is 6%, the bond price is closest to:",a:"$973.27",b:"$973.27",c:"$973.27",ans:"A"},
+{t:"FI",q:"Modified duration of a bond is BEST described as:",a:"The weighted average time to receive cash flows",b:"The percentage change in bond price for a 1% change in yield",c:"The price of the bond divided by its coupon rate",ans:"B"},
+{t:"FI",q:"Which of the following bonds has the greatest interest rate risk?",a:"A 5-year bond with a 10% coupon",b:"A 10-year zero-coupon bond",c:"A 10-year bond with a 10% coupon",ans:"B"},
+{t:"FI",q:"Convexity in bond pricing means that:",a:"Bond prices fall more than modified duration predicts when yields fall",b:"For large yield changes, the price-yield relationship is not perfectly linear, and convexity improves the duration approximation",c:"Higher coupon bonds have greater convexity",ans:"B"},
+{t:"FI",q:"A credit spread refers to:",a:"The difference between a bond's coupon and its yield to maturity",b:"The yield difference between a corporate bond and a benchmark government bond of similar maturity",c:"The spread between bid and ask prices in the bond market",ans:"B"},
+{t:"FI",q:"The yield to maturity (YTM) of a bond assumes that:",a:"Coupons are reinvested at the coupon rate",b:"Coupons are reinvested at the YTM",c:"Coupons are reinvested at the risk-free rate",ans:"B"},
+{t:"FI",q:"An upward-sloping yield curve is MOST consistent with:",a:"Investors expecting interest rates to fall",b:"Investors requiring a higher return for longer maturities",c:"A severe economic recession",ans:"B"},
+{t:"FI",q:"Which of the following is a defining feature of a mortgage-backed security (MBS)?",a:"It pays a fixed coupon and is backed by the issuer's credit",b:"Investors are exposed to prepayment risk",c:"It is always issued by sovereign governments",ans:"B"},
+{t:"FI",q:"A callable bond will have a yield that is:",a:"Lower than an otherwise identical non-callable bond",b:"Higher than an otherwise identical non-callable bond, to compensate for the call option",c:"Equal to the non-callable bond, because investors are indifferent",ans:"B"},
+{t:"FI",q:"The spot rate for a 2-year zero-coupon bond is 4% and for a 3-year zero-coupon bond is 5%. The implied 1-year forward rate two years from now is closest to:",a:"5.5%",b:"7.0%",c:"6.0%",ans:"B"},
+{t:"FI",q:"Under the expectations theory of the term structure, long-term interest rates are determined by:",a:"Investors' preference for short-term securities",b:"The expected path of short-term interest rates",c:"Supply and demand for long-term bonds only",ans:"B"},
+{t:"FI",q:"Duration of a bond portfolio is calculated as:",a:"The simple average of individual bond durations",b:"The value-weighted average of individual bond durations",c:"The highest individual bond duration in the portfolio",ans:"B"},
+{t:"FI",q:"A floating rate note (FRN) has minimal interest rate risk because:",a:"Its coupon resets periodically to reflect current market rates",b:"It always trades at par",c:"It is backed by government guarantees",ans:"A"},
+{t:"FI",q:"Which credit rating category is considered investment grade?",a:"CCC",b:"BB+",c:"BBB−",ans:"C"},
+{t:"FI",q:"The price value of a basis point (PVBP) measures:",a:"The par value of the bond",b:"The change in bond price for a 1 basis point change in yield",c:"The yield spread over the benchmark",ans:"B"},
+{t:"FI",q:"An issuer's credit rating is downgraded from A to BBB. The most likely immediate effect on the bond's yield spread is:",a:"The spread narrows as the bond becomes more attractive",b:"The spread widens as the bond now carries greater credit risk",c:"No change, because the bond is still investment grade",ans:"B"},
+{t:"FI",q:"The bootstrapping method is used to derive:",a:"Coupon bond prices from zero-coupon rates",b:"Zero-coupon (spot) rates from coupon bond prices",c:"Forward rates from inflation expectations",ans:"B"},
+{t:"FI",q:"Accrued interest on a bond purchased between coupon dates:",a:"Is always waived in a clean price transaction",b:"Is owed by the buyer to the seller and is added to the clean price to arrive at the dirty price",c:"Reduces the yield to maturity of the bond",ans:"B"},
+{t:"FI",q:"The key advantage of asset-backed securities (ABS) over corporate bonds for investors is:",a:"Greater issuer creditworthiness",b:"The underlying assets provide collateral that may reduce credit risk",c:"ABS always have higher yields than comparable corporate bonds",ans:"B"},
+// DERIVATIVES (12 questions, indices 130-141)
+{t:"DRV",q:"A call option gives the holder the right to:",a:"Sell the underlying asset at the strike price before expiry",b:"Buy the underlying asset at the strike price before expiry",c:"Receive the intrinsic value of the option at expiry",ans:"B"},
+{t:"DRV",q:"A European put option on a stock has a strike price of $50. The stock currently trades at $45. The intrinsic value of the put is:",a:"$0",b:"$5",c:"−$5",ans:"B"},
+{t:"DRV",q:"Put-call parity states that for European options on non-dividend-paying stocks:",a:"C + X·e^(−rT) = P + S₀",b:"C − P = S₀ − X·e^(−rT)",c:"P = C + S₀ − X·e^(−rT)",ans:"B"},
+{t:"DRV",q:"A forward contract's value at initiation is:",a:"Equal to the spot price of the underlying",b:"Zero, because no money changes hands at initiation",c:"Equal to the present value of the forward price",ans:"B"},
+{t:"DRV",q:"Which of the following is a key difference between forward contracts and futures contracts?",a:"Forwards are standardised and traded on exchanges; futures are customised and OTC",b:"Futures are marked to market daily; forwards settle at expiration",c:"Futures do not require margin; forwards require full payment upfront",ans:"B"},
+{t:"DRV",q:"An investor buys a protective put strategy, which consists of:",a:"Buying a call option and selling a put option",b:"Buying the underlying asset and buying a put option",c:"Selling the underlying asset and buying a call option",ans:"B"},
+{t:"DRV",q:"An interest rate swap where one party pays a fixed rate and receives a floating rate is most likely used to:",a:"Increase exposure to floating rate risk",b:"Convert floating rate debt to fixed rate, reducing interest rate uncertainty",c:"Speculate on rising interest rates",ans:"B"},
+{t:"DRV",q:"The maximum loss for the buyer of a call option is:",a:"Unlimited, as the stock can rise indefinitely",b:"The premium paid for the option",c:"The difference between the stock price and the strike price",ans:"B"},
+{t:"DRV",q:"A commodity producer uses futures contracts to hedge against falling commodity prices. This hedge is BEST described as:",a:"A long hedge",b:"A short hedge",c:"A speculative position",ans:"B"},
+{t:"DRV",q:"An option's delta measures:",a:"The change in option price per $1 change in the underlying price",b:"The change in option price per 1% change in volatility",c:"Time decay of the option premium",ans:"A"},
+{t:"DRV",q:"The binomial option pricing model assumes that the underlying asset price can:",a:"Move to any value over time following a normal distribution",b:"Move up or down by a defined amount in each period",c:"Only increase in value over the option's life",ans:"B"},
+{t:"DRV",q:"A covered call strategy consists of:",a:"Buying a call option and the underlying asset",b:"Selling a call option against an existing long position in the underlying asset",c:"Buying a call option against a short position in the underlying",ans:"B"},
+// ALTERNATIVE INVESTMENTS (14 questions, indices 142-155)
+{t:"ALT",q:"Which of the following is MOST likely an alternative investment?",a:"US Treasury bonds",b:"A large-cap equity index fund",c:"A private equity fund",ans:"C"},
+{t:"ALT",q:"A hedge fund employs a long/short equity strategy. This means the fund:",a:"Only takes long positions in undervalued stocks",b:"Takes long positions in undervalued stocks and short positions in overvalued stocks",c:"Uses only derivatives to gain equity market exposure",ans:"B"},
+{t:"ALT",q:"Private equity funds typically differ from public equity in that they:",a:"Provide greater liquidity and lower return potential",b:"Are illiquid, but potentially offer higher returns due to the illiquidity premium and operational improvements",c:"Are subject to daily mark-to-market valuation",ans:"B"},
+{t:"ALT",q:"Commodity investments can provide portfolio diversification because:",a:"Commodities have a perfect negative correlation with equities",b:"Commodity returns often have low or negative correlation with equity and bond returns, especially during inflationary periods",c:"Commodities always produce positive returns regardless of economic conditions",ans:"B"},
+{t:"ALT",q:"A real estate investment trust (REIT) is required to distribute what minimum percentage of taxable income to shareholders to maintain its tax-advantaged status (in the US)?",a:"50%",b:"75%",c:"90%",ans:"C"},
+{t:"ALT",q:"Infrastructure investments are characterised by:",a:"High liquidity and short investment horizons",b:"Stable, long-term cash flows and natural monopoly characteristics",c:"High volatility and correlation with equity markets",ans:"B"},
+{t:"ALT",q:"A fund of funds invests in:",a:"Directly held securities such as stocks and bonds",b:"A portfolio of underlying hedge funds or private equity funds",c:"Exchange-traded derivatives only",ans:"B"},
+{t:"ALT",q:"The '2 and 20' fee structure commonly used by hedge funds refers to:",a:"2% quarterly management fee and 20% of losses recovered",b:"2% annual management fee and 20% performance fee on profits above a hurdle",c:"2% entry fee and 20% exit fee",ans:"B"},
+{t:"ALT",q:"Which of the following best describes a distressed debt hedge fund strategy?",a:"Purchasing investment-grade bonds at a premium",b:"Investing in the debt of companies undergoing financial distress or bankruptcy",c:"Short-selling the bonds of financially strong companies",ans:"B"},
+{t:"ALT",q:"Timberland and farmland are considered alternative investments because they:",a:"Are publicly traded on major stock exchanges",b:"Provide exposure to real assets with potentially low correlation to financial markets",c:"Offer guaranteed returns similar to fixed income",ans:"B"},
+{t:"ALT",q:"The J-curve effect in private equity refers to:",a:"Rising performance fees as returns improve over the fund's life",b:"Negative returns in early fund years due to management fees and investments not yet realising value, followed by positive returns later",c:"A legal structure used by limited partners to reduce taxes",ans:"B"},
+{t:"ALT",q:"Which of the following is a primary risk of investing in hedge funds?",a:"Excessive transparency and disclosure requirements",b:"Limited redemption terms and lock-up periods that reduce liquidity",c:"Inability to use leverage",ans:"B"},
+{t:"ALT",q:"An investor allocating to alternative investments seeks to gain:",a:"Government-guaranteed returns",b:"Portfolio diversification, inflation protection, or return enhancement",c:"Daily liquidity at net asset value",ans:"B"},
+{t:"ALT",q:"A managed futures strategy typically invests in:",a:"Physical commodities stored in warehouses",b:"Exchange-traded futures contracts across asset classes, using trend-following or systematic strategies",c:"Private real estate directly",ans:"B"},
+// PORTFOLIO MANAGEMENT (14 questions, indices 156-169)
+{t:"PM",q:"According to modern portfolio theory, the efficient frontier represents:",a:"Portfolios with the highest possible return for any given level of risk",b:"The portfolio with the minimum variance across all asset allocations",c:"Only portfolios consisting entirely of risky assets",ans:"A"},
+{t:"PM",q:"The Sharpe ratio is calculated as:",a:"(Portfolio return − Benchmark return) / Portfolio standard deviation",b:"(Portfolio return − Risk-free rate) / Portfolio standard deviation",c:"(Portfolio return − Risk-free rate) / Portfolio beta",ans:"B"},
+{t:"PM",q:"The capital market line (CML) represents portfolios that combine:",a:"Only risky assets to form efficient portfolios",b:"The risk-free asset and the market portfolio",c:"Bonds and equities in fixed proportions",ans:"B"},
+{t:"PM",q:"A portfolio has a return of 12%, a standard deviation of 18%, and the risk-free rate is 4%. The Sharpe ratio is closest to:",a:"0.33",b:"0.44",c:"0.67",ans:"B"},
+{t:"PM",q:"The investment policy statement (IPS) is BEST described as:",a:"A legal document binding the portfolio manager to specific performance outcomes",b:"A document that establishes the objectives, constraints, and guidelines for managing a portfolio",c:"A regulatory filing that discloses the portfolio's holdings to the public",ans:"B"},
+{t:"PM",q:"Systematic risk is measured by:",a:"Standard deviation of the portfolio's returns",b:"Beta, which measures sensitivity to market-wide movements",c:"The Sharpe ratio",ans:"B"},
+{t:"PM",q:"The Treynor ratio uses beta in the denominator instead of standard deviation. It is most appropriate for evaluating portfolios that:",a:"Represent the investor's entire wealth and are well-diversified",b:"Are part of a larger portfolio, where only systematic risk is relevant",c:"Are composed entirely of fixed income securities",ans:"B"},
+{t:"PM",q:"An investor with a 30-year investment horizon, stable employment, and no near-term liquidity needs is MOST likely to have:",a:"A high risk tolerance and a growth-oriented allocation",b:"A low risk tolerance and a capital preservation focus",c:"A mandate to hold only investment-grade bonds",ans:"A"},
+{t:"PM",q:"Which of the following best describes Jensen's alpha?",a:"The excess return of a portfolio above the risk-free rate per unit of total risk",b:"The excess return of a portfolio above the return predicted by CAPM given its beta",c:"The portfolio return minus the benchmark return",ans:"B"},
+{t:"PM",q:"Rebalancing a portfolio refers to:",a:"Switching from one asset manager to another",b:"Adjusting portfolio weights back to target allocations after market movements have caused drift",c:"Increasing equity exposure during a bull market",ans:"B"},
+{t:"PM",q:"A robo-adviser typically constructs client portfolios using:",a:"Discretionary active management based on a team of analysts",b:"Algorithms and passive investments such as ETFs to implement a strategic asset allocation",c:"Alternative investments as the primary holding",ans:"B"},
+{t:"PM",q:"Dollar-cost averaging involves:",a:"Investing a lump sum when markets are at a low point",b:"Investing a fixed dollar amount at regular intervals regardless of price",c:"Matching the allocation of a benchmark index exactly",ans:"B"},
+{t:"PM",q:"The security market line (SML) plots expected return against:",a:"Standard deviation",b:"Beta (systematic risk)",c:"Duration",ans:"B"},
+{t:"PM",q:"Which of the following is a constraint typically included in an investment policy statement?",a:"The expected return of the market portfolio",b:"Liquidity requirements and time horizon",c:"The current price-earnings ratio of the market",ans:"B"},
+// end of question array
+// 10 extra questions for Session 2 to reach Q[90..179]
+{t:"EQU",q:"A company has net income of $10 million, revenue of $100 million, and total assets of $80 million with equity of $40 million. Its return on equity (ROE) is:",a:"10%",b:"12.5%",c:"25%",ans:"C"},
+{t:"EQU",q:"Which of the following statements about market efficiency is MOST accurate?",a:"In a weak-form efficient market, fundamental analysis can generate abnormal returns",b:"In a semi-strong efficient market, only insider information generates abnormal returns",c:"In a semi-strong efficient market, technical and fundamental analysis both fail to generate consistent abnormal returns",ans:"C"},
+{t:"EQU",q:"The sustainable growth rate formula using ROE and retention ratio (b) is:",a:"ROE × (1 + b)",b:"ROE × b",c:"ROE / b",ans:"B"},
+{t:"FI",q:"A bond with higher convexity, compared to a bond with lower convexity at the same duration, will:",a:"Lose more value when yields rise by the same amount",b:"Gain more value when yields fall and lose less when yields rise",c:"Always have a lower yield",ans:"B"},
+{t:"FI",q:"The Z-spread of a bond is best defined as:",a:"The yield spread over the on-the-run Treasury of similar maturity",b:"The constant spread added to each spot rate on the benchmark curve to equate discounted cash flows to the bond's price",c:"The option-adjusted spread net of the embedded option cost",ans:"B"},
+{t:"DRV",q:"An investor sells a put option with a strike price of $60 on a stock currently trading at $65. At expiry the stock is at $55. The net payoff to the option writer (ignoring premium) is:",a:"+$5",b:"−$5",c:"$0",ans:"B"},
+{t:"DRV",q:"Which of the following best describes a credit default swap (CDS)?",a:"A contract to exchange fixed and floating interest rate payments",b:"A derivative in which the protection buyer pays periodic premiums and receives a payment if a specified credit event occurs",c:"A futures contract on government bond prices",ans:"B"},
+{t:"PM",q:"Which of the following best describes the concept of risk aversion in portfolio theory?",a:"Risk-averse investors refuse to hold any risky assets",b:"Risk-averse investors require additional expected return to accept additional risk",c:"Risk-averse investors always prefer the minimum variance portfolio",ans:"B"},
+{t:"PM",q:"An investor's portfolio has an expected return of 10% and a standard deviation of 15%. The risk-free rate is 4%. A new asset with an expected return of 8% and standard deviation of 12% has a correlation of 0.1 with the portfolio. Adding this asset to the portfolio will most likely:",a:"Increase both risk and return",b:"Reduce portfolio risk due to the low correlation, potentially improving the risk-return trade-off",c:"Have no effect, because the asset has a lower Sharpe ratio than the portfolio",ans:"B"},
+{t:"PM",q:"Strategic asset allocation is BEST described as:",a:"Adjusting portfolio weights frequently based on short-term market forecasts",b:"Setting long-term target weights for each asset class based on the investor's risk and return objectives",c:"Selecting individual securities to outperform a benchmark",ans:"B"},
+]; // end ALL_QUESTIONS
+
+const S1 = Q.slice(0, 90);
+const S2 = Q.slice(90, 180);
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const state = {
+  s1Answers: new Array(90).fill(null),
+  s2Answers: new Array(90).fill(null),
+  s1Flagged: new Array(90).fill(false),
+  s2Flagged: new Array(90).fill(false),
+  s1Current: 0,
+  s2Current: 0,
+  s1SecondsLeft: 8100, // 135 min
+  s2SecondsLeft: 8100,
+  s1TimeUsed: 0,
+  s2TimeUsed: 0,
+  s1Timer: null,
+  s2Timer: null,
+};
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function fmtTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen, .exam-screen').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── EXAM START ───────────────────────────────────────────────────────────────
+function startExam() {
+  showScreen('session1');
+  buildNav(1);
+  renderQuestion(1, 0);
+  state.s1Timer = setInterval(() => tick(1), 1000);
+}
+
+function tick(session) {
+  const key = `s${session}SecondsLeft`;
+  state[key]--;
+  const timerEl = document.getElementById(`s${session}-timer`);
+  const remaining = state[key];
+  timerEl.textContent = fmtTime(remaining);
+  timerEl.className = 'timer';
+  if (remaining <= 600) timerEl.classList.add('warning');
+  if (remaining <= 120) timerEl.classList.remove('warning'), timerEl.classList.add('danger');
+  if (remaining <= 0) {
+    clearInterval(state[`s${session}Timer`]);
+    if (session === 1) goToBreak();
+    else showReport();
+  }
+}
+
+// ─── RENDER QUESTION ─────────────────────────────────────────────────────────
+function renderQuestion(session, idx) {
+  const questions = session === 1 ? S1 : S2;
+  const answers   = session === 1 ? state.s1Answers : state.s2Answers;
+  const flagged   = session === 1 ? state.s1Flagged : state.s2Flagged;
+  const qObj = questions[idx];
+  const panel = document.getElementById(`s${session}-question-panel`);
+  const progress = document.getElementById(`s${session}-progress`);
+  progress.textContent = `Question ${idx + 1} of 90`;
+  if (session === 1) state.s1Current = idx; else state.s2Current = idx;
+
+  const isFlagged = flagged[idx];
+  const selected  = answers[idx];
+
+  const optLetters = ['A','B','C'];
+  const optTexts   = [qObj.a, qObj.b, qObj.c];
+
+  let optionsHtml = optTexts.map((text, i) => {
+    const letter = optLetters[i];
+    const cls = selected === letter ? 'option selected' : 'option';
+    return `<div class="${cls}" onclick="selectAnswer(${session},${idx},'${letter}')">
+      <div class="option-letter">${letter}</div>
+      <div class="option-text">${text}</div>
+    </div>`;
+  }).join('');
+
+  panel.innerHTML = `
+    <div class="q-number">QUESTION ${idx + 1} &nbsp;·&nbsp; ${topicName(qObj.t)}</div>
+    <div class="q-stem">${qObj.q}</div>
+    <div class="options">${optionsHtml}</div>
+    <div class="q-footer">
+      <button class="btn-nav prev" onclick="navigate(${session},${idx - 1})" ${idx === 0 ? 'disabled style="opacity:0.3"' : ''}>← Previous</button>
+      <button class="btn-flag ${isFlagged ? 'flagged' : ''}" onclick="toggleFlag(${session},${idx})">${isFlagged ? '⚑ Flagged' : '⚐ Flag'}</button>
+      <button class="btn-nav next" onclick="navigate(${session},${idx + 1})" ${idx === 89 ? 'disabled style="opacity:0.3"' : ''}>Next →</button>
+    </div>`;
+}
+
+function topicName(code) {
+  return {ETH:'Ethics',QNT:'Quantitative Methods',ECO:'Economics',FSA:'Financial Statement Analysis',COR:'Corporate Issuers',EQU:'Equity Investments',FI:'Fixed Income',DRV:'Derivatives',ALT:'Alternative Investments',PM:'Portfolio Management'}[code] || code;
+}
+
+function selectAnswer(session, idx, val) {
+  if (session === 1) state.s1Answers[idx] = val;
+  else state.s2Answers[idx] = val;
+  renderQuestion(session, idx);
+  updateNav(session, idx);
+}
+
+function toggleFlag(session, idx) {
+  if (session === 1) state.s1Flagged[idx] = !state.s1Flagged[idx];
+  else state.s2Flagged[idx] = !state.s2Flagged[idx];
+  renderQuestion(session, idx);
+  updateNav(session, idx);
+}
+
+function navigate(session, idx) {
+  if (idx < 0 || idx > 89) return;
+  renderQuestion(session, idx);
+  updateNavCurrent(session, idx);
+}
+
+// ─── NAVIGATOR ───────────────────────────────────────────────────────────────
+function buildNav(session) {
+  const grid = document.getElementById(`s${session}-nav-grid`);
+  grid.innerHTML = '';
+  for (let i = 0; i < 90; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'nav-btn' + (i === 0 ? ' current' : '');
+    btn.textContent = i + 1;
+    btn.onclick = () => navigate(session, i);
+    btn.id = `s${session}-nav-${i}`;
+    grid.appendChild(btn);
+  }
+}
+
+function updateNav(session, idx) {
+  const answers = session === 1 ? state.s1Answers : state.s2Answers;
+  const flagged = session === 1 ? state.s1Flagged : state.s2Flagged;
+  const btn = document.getElementById(`s${session}-nav-${idx}`);
+  if (!btn) return;
+  btn.className = 'nav-btn';
+  if (answers[idx]) btn.classList.add('answered');
+  if (flagged[idx]) btn.classList.add('flagged');
+  const cur = session === 1 ? state.s1Current : state.s2Current;
+  if (idx === cur) btn.classList.add('current');
+}
+
+function updateNavCurrent(session, newIdx) {
+  const oldIdx = session === 1 ? state.s1Current : state.s2Current;
+  const oldBtn = document.getElementById(`s${session}-nav-${oldIdx}`);
+  if (oldBtn) oldBtn.classList.remove('current');
+  const newBtn = document.getElementById(`s${session}-nav-${newIdx}`);
+  if (newBtn) newBtn.classList.add('current');
+  if (session === 1) state.s1Current = newIdx; else state.s2Current = newIdx;
+}
+
+// ─── SUBMIT / BREAK ──────────────────────────────────────────────────────────
+function confirmSubmit(session) {
+  const answers = session === 1 ? state.s1Answers : state.s2Answers;
+  const unanswered = answers.filter(a => a === null).length;
+  const msg = unanswered > 0
+    ? `You have ${unanswered} unanswered question(s). Are you sure you want to submit Session ${session}?`
+    : `Submit Session ${session}? This cannot be undone.`;
+  if (confirm(msg)) {
+    clearInterval(session === 1 ? state.s1Timer : state.s2Timer);
+    const used = 8100 - (session === 1 ? state.s1SecondsLeft : state.s2SecondsLeft);
+    if (session === 1) { state.s1TimeUsed = used; goToBreak(); }
+    else { state.s2TimeUsed = used; showReport(); }
+  }
+}
+
+function goToBreak() {
+  if (!state.s1TimeUsed) state.s1TimeUsed = 8100 - state.s1SecondsLeft;
+  const answered = state.s1Answers.filter(a => a !== null).length;
+  const flg = state.s1Flagged.filter(Boolean).length;
+  document.getElementById('s1-answered-count').textContent = answered;
+  document.getElementById('s1-flagged-count').textContent = flg;
+  document.getElementById('s1-time-used').textContent = fmtTime(state.s1TimeUsed);
+  showScreen('break-screen');
+}
+
+function startSession2() {
+  showScreen('session2');
+  buildNav(2);
+  renderQuestion(2, 0);
+  state.s2Timer = setInterval(() => tick(2), 1000);
+}
+
+// ─── REPORT ──────────────────────────────────────────────────────────────────
+const TOPICS = [
+  {code:'ETH', name:'Ethics & Professional Standards', weight:'15–20%'},
+  {code:'QNT', name:'Quantitative Methods',            weight:'6–9%'},
+  {code:'ECO', name:'Economics',                       weight:'6–9%'},
+  {code:'FSA', name:'Financial Statement Analysis',    weight:'11–14%'},
+  {code:'COR', name:'Corporate Issuers',               weight:'6–9%'},
+  {code:'EQU', name:'Equity Investments',              weight:'11–14%'},
+  {code:'FI',  name:'Fixed Income',                    weight:'11–14%'},
+  {code:'DRV', name:'Derivatives',                     weight:'5–8%'},
+  {code:'ALT', name:'Alternative Investments',         weight:'7–10%'},
+  {code:'PM',  name:'Portfolio Management',            weight:'8–12%'},
+];
+
+function showReport() {
+  if (!state.s2TimeUsed) state.s2TimeUsed = 8100 - state.s2SecondsLeft;
+  showScreen('report-screen');
+  document.getElementById('report-date').textContent = new Date().toLocaleDateString('en-GB', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  const allAnswers = [...state.s1Answers, ...state.s2Answers];
+  let totalCorrect = 0;
+  Q.forEach((q, i) => { if (allAnswers[i] === q.ans) totalCorrect++; });
+
+  // Session scores
+  let s1Correct = 0, s2Correct = 0;
+  state.s1Answers.forEach((a, i) => { if (a === S1[i].ans) s1Correct++; });
+  state.s2Answers.forEach((a, i) => { if (a === S2[i].ans) s2Correct++; });
+
+  const pct = Math.round(totalCorrect / 180 * 100);
+  document.getElementById('report-pct').textContent = pct + '%';
+
+  let verdict, verdictSub, verdictClass;
+  if (pct >= 70) {
+    verdict = '✅ Pass-Band Performance'; verdictClass = 'pass';
+    verdictSub = 'You are scoring in the likely-pass zone. Keep drilling weak topics.';
+  } else if (pct >= 60) {
+    verdict = '⚠️ Borderline'; verdictClass = 'close';
+    verdictSub = 'You are close to the pass threshold. Focus on high-weight topics.';
+  } else {
+    verdict = '❌ Needs Work'; verdictClass = 'fail';
+    verdictSub = 'Significant study is needed before the exam. Prioritise Ethics, FSA, and Fixed Income.';
+  }
+  const vEl = document.getElementById('report-verdict');
+  vEl.textContent = verdict;
+  vEl.className = `verdict ${verdictClass}`;
+  document.getElementById('report-verdict-sub').textContent = verdictSub;
+
+  document.getElementById('s1-report-score').textContent = `${s1Correct} / 90`;
+  document.getElementById('s1-report-pct').textContent = `${Math.round(s1Correct/90*100)}% correct`;
+  document.getElementById('s2-report-score').textContent = `${s2Correct} / 90`;
+  document.getElementById('s2-report-pct').textContent = `${Math.round(s2Correct/90*100)}% correct`;
+
+  // Topic performance
+  const topicStats = {};
+  TOPICS.forEach(t => topicStats[t.code] = {correct:0, total:0, name:t.name, weight:t.weight});
+  Q.forEach((q, i) => {
+    topicStats[q.t].total++;
+    if (allAnswers[i] === q.ans) topicStats[q.t].correct++;
+  });
+
+  const sorted = Object.values(topicStats).sort((a,b) => (a.correct/a.total) - (b.correct/b.total));
+  let barsHtml = sorted.map(t => {
+    const p = t.total > 0 ? Math.round(t.correct/t.total*100) : 0;
+    let barClass = p >= 70 ? 'strong' : p >= 55 ? 'ok' : p >= 40 ? 'weak' : 'poor';
+    let badge = p >= 70 ? '<span class="badge strong">Strong</span>'
+              : p >= 55 ? '<span class="badge review">Review</span>'
+              : '<span class="badge high-priority">High Priority</span>';
+    return `<div class="topic-row">
+      <div class="topic-name">${t.name}<br><small style="color:#9ca3af;font-weight:400">${t.weight}</small></div>
+      <div class="bar-track"><div class="bar-fill ${barClass}" style="width:${p}%"></div></div>
+      <div class="topic-score" style="color:${barClass==='strong'?'#059669':barClass==='ok'?'#3b82f6':barClass==='weak'?'#d97706':'#dc2626'}">${p}%</div>
+      ${badge}
+    </div>`;
+  }).join('');
+  document.getElementById('topic-bars').innerHTML = barsHtml;
+
+  // Recommendations
+  const weak = sorted.filter(t => t.total > 0 && t.correct/t.total < 0.55);
+  const recsEl = document.getElementById('recs-list');
+  let recs = [];
+  if (weak.length === 0) {
+    recs.push({icon:'🎯', text:'Excellent performance across all topics. Maintain your preparation and attempt additional mock exams.'});
+  } else {
+    weak.slice(0,4).forEach(t => {
+      const p = Math.round(t.correct/t.total*100);
+      let tip = '';
+      if (t.name.includes('Ethics')) tip = 'Re-read the Standards and practise scenario-based questions. Ethics can swing pass/fail.';
+      else if (t.name.includes('FSA')) tip = 'Work through income statement, balance sheet, and cash flow re-classification questions.';
+      else if (t.name.includes('Fixed')) tip = 'Practise bond pricing, duration, and yield curve questions with your calculator.';
+      else if (t.name.includes('Quant')) tip = 'Focus on TVM, probability, and hypothesis testing. These calculations recur in other topics.';
+      else if (t.name.includes('Portfolio')) tip = 'Review CAPM, Sharpe ratio, and the components of a well-structured IPS.';
+      else if (t.name.includes('Equity')) tip = 'Practise DDM, P/E multiples, and residual income calculations.';
+      else if (t.name.includes('Economics')) tip = 'Review supply and demand, exchange rate mechanics, and fiscal/monetary policy.';
+      else if (t.name.includes('Corporate')) tip = 'Revisit WACC, capital structure, and NPV/IRR decision rules.';
+      else if (t.name.includes('Derivatives')) tip = 'Focus on option payoff diagrams, put-call parity, and futures vs. forwards.';
+      else if (t.name.includes('Alternative')) tip = 'Review hedge fund strategies, private equity characteristics, and REIT structures.';
+      recs.push({icon:'📌', text:`<strong>${t.name} — ${p}%:</strong> ${tip}`});
+    });
+    recs.push({icon:'⏱', text:`Session 1 time used: ${fmtTime(state.s1TimeUsed)}. Session 2 time used: ${fmtTime(state.s2TimeUsed)}. On the real exam you have ~90 seconds per question.`});
+    recs.push({icon:'📚', text:'Take at least 3 full mock exams under timed conditions before exam day. Review every incorrect answer in detail.'});
+  }
+  recsEl.innerHTML = recs.map(r => `<div class="rec-item"><div class="rec-icon">${r.icon}</div><div>${r.text}</div></div>`).join('');
+}
+</script>
+</body>
+</html>
